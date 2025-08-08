@@ -1,25 +1,40 @@
 import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import { HashRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider } from './contexts/AuthContext';
+import { OnboardingProvider } from './contexts/OnboardingContext';
+import { AssessmentProvider } from './contexts/AssessmentContext';
+import { TensionProvider } from './contexts/TensionContext';
+import Landing from './pages/Landing';
+import Dashboard from './pages/Dashboard';
+import Onboarding from './pages/Onboarding';
+import Assessment from './pages/Assessment';
+import UserSetup from './pages/UserSetup';
+import TensionPage from './pages/TensionPage';
+
+// Używamy HashRouter, aby routing działał poprawnie na GitHub Pages bez dodatkowej konfiguracji serwera
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Router>
+      <AuthProvider>
+        <OnboardingProvider>
+          <AssessmentProvider>
+            <TensionProvider>
+              <Routes>
+                <Route path="/" element={<Landing />} />
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/onboarding" element={<Onboarding />} />
+                <Route path="/assessment" element={<Assessment />} />
+                <Route path="/user-setup" element={<UserSetup />} />
+                <Route path="/setup" element={<Navigate to="/user-setup" replace />} />
+                <Route path="/tension" element={<TensionPage />} />
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </Routes>
+            </TensionProvider>
+          </AssessmentProvider>
+        </OnboardingProvider>
+      </AuthProvider>
+    </Router>
   );
 }
 

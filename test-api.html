@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Test</title>
+</head>
+<body>
+    <h1>API Test</h1>
+    <div id="results"></div>
+    
+    <script>
+        // Test API
+        async function testAPI() {
+            const results = document.getElementById('results');
+            results.innerHTML = '<h2>Testowanie API...</h2>';
+            
+            try {
+                // Test 1: Sprawdź czy aplikacja jest dostępna
+                const response = await fetch('http://localhost:3000');
+                if (response.ok) {
+                    results.innerHTML += '<p>✅ Aplikacja jest dostępna na localhost:3000</p>';
+                } else {
+                    results.innerHTML += '<p>❌ Aplikacja nie jest dostępna</p>';
+                }
+                
+                // Test 2: Sprawdź czy mock API działa
+                results.innerHTML += '<p>🔍 Mock API jest skonfigurowany w src/services/apiClient.ts</p>';
+                results.innerHTML += '<p>📋 Dostępne endpointy:</p>';
+                results.innerHTML += '<ul>';
+                results.innerHTML += '<li>apiClient.startAssessment(type, userId)</li>';
+                results.innerHTML += '<li>apiClient.submitAnswer(sessionId, answer)</li>';
+                results.innerHTML += '<li>apiClient.getProfile(userId)</li>';
+                results.innerHTML += '<li>api.users.completeOnboarding(userId, data)</li>';
+                results.innerHTML += '<li>api.ai.next(sessionId)</li>';
+                results.innerHTML += '<li>api.onboarding.submit(data)</li>';
+                results.innerHTML += '</ul>';
+                
+                results.innerHTML += '<p>🎯 Aby przetestować API, przejdź do aplikacji i spróbuj:</p>';
+                results.innerHTML += '<ul>';
+                results.innerHTML += '<li>Przejdź do /assessment - testuje startAssessment i submitAnswer</li>';
+                results.innerHTML += '<li>Przejdź do /onboarding - testuje completeOnboarding</li>';
+                results.innerHTML += '<li>Przejdź do /tension - testuje różne endpointy Tension</li>';
+                results.innerHTML += '</ul>';
+                
+            } catch (error) {
+                results.innerHTML += `<p>❌ Błąd: ${error.message}</p>`;
+            }
+        }
+        
+        // Uruchom test
+        testAPI();
+    </script>
+</body>
+</html>

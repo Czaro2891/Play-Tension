@@ -8,6 +8,7 @@
     ],
     "allowJs": true,
     "skipLibCheck": true,
+    "typeRoots": ["node_modules/@types", "src/types"],
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "strict": true,
@@ -22,5 +23,12 @@
   },
   "include": [
     "src"
+  ],
+  "exclude": [
+    "src/generated",
+    "src/lib/prisma.ts",
+    "src/test-prisma.ts",
+    "server",
+    "prisma"
   ]
 }

@@ -21,3 +21,14 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# Vercel
+.vercel
+
+# Local development files
+mock-backend.js
+start.bat
+start-public.bat
+NETWORK_SETTINGS_ANALYSIS.md
+
+/src/generated/prisma

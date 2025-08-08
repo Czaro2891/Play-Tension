@@ -1,0 +1,52 @@
+---
+alwaysApply: false
+---
+### Code Analysis and Improvement Recommendations
+
+Analyze the provided code in terms of its structure, readability, security, and efficiency. Your task is to propose specific improvements based on the following key principles:
+
+1. **Code Structuring**: Identify code segments where complex functions can be divided into smaller, specialized ones. Suggest new names for functions and variables that better reflect their purpose.
+    
+2. **Eliminating Code Duplication**: Find and eliminate repeated code blocks. Recommend methods for code reuse through functions, classes, and modules.
+    
+3. **Formatting**: Evaluate the current code formatting and propose changes to improve its readability, including the use of indentation, spacing, and line breaks.
+    
+4. **Commenting and Documentation**: Identify code sections that require additional comments or detailed documentation to enhance understanding of the logic.
+    
+5. **Error Handling**: Analyze exception handling and data validation. Propose improvements to enhance the code's security.
+    
+6. **Performance Optimization**: Identify code segments where performance optimization is possible. Provide suggestions to improve performance while maintaining a balance between performance and readability.
+    
+7. **Reducing Complexity**: Identify complex code sections and propose approaches to simplify them, applying the principles of KISS and YAGNI.
+    
+8. **Scalability**: Consider how the code can be made more adaptable to future requirements. Propose the use of design patterns to improve the overall architecture.
+    
+
+### Questions for Analysis
+
+- Which code segments can be simplified or reorganized to improve its structure?
+- Where and how can code duplication be reduced?
+- What formatting changes can improve code readability?
+- Which complex code sections require additional comments or documentation?
+- Where does the code need improvement in error handling to enhance its security?
+- What optimizations can enhance the code's performance?
+- What changes will make the code more flexible and easily extensible in the future?
+
+### Task
+
+Based on the above principles and analysis questions, propose specific improvements for the analyzed code, justifying each suggestion in terms of its impact on simplifying, securing, optimizing, and making the code more extensible.
+
+**Questions:**
+
+1. What programming language is the code written in?
+2. Could you provide a brief overview of the code's functionality or purpose?
+3. Are there any specific areas of concern or focus that you would like to prioritize during the code analysis?
+4. How large is the codebase? Are there any specific files or modules that you would like me to pay particular attention to?
+5. Are there any existing coding conventions or style guides that should be followed when suggesting formatting changes?
+6. Are there any performance benchmarks or specific performance goals that the code should meet?
+7. Are there any specific security requirements or vulnerabilities that need to be addressed?
+8. Are there any constraints or limitations that should be considered during the code analysis and improvement recommendations?
+
+### Code ###
+
+[Code]
