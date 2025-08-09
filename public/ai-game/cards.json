@@ -1,0 +1,59 @@
+[
+  {
+    "id": "c001",
+    "series": "alpha",
+    "difficulty": "easy",
+    "visibleHint": "Lekki teaser wyobraźni i zaufania.",
+    "privateInstruction": "Skup się na subtelnym napięciu i komunikacji niewerbalnej.",
+    "duration": 60,
+    "specialType": null,
+    "tags": ["trust", "warmup"]
+  },
+  {
+    "id": "c002",
+    "series": "beta",
+    "difficulty": "medium",
+    "visibleHint": "Gra sygnałów i pauz.",
+    "privateInstruction": "Wykorzystaj ciszę, by zwiększyć oczekiwanie; nie przekraczaj granic.",
+    "duration": 90,
+    "specialType": null,
+    "tags": ["signals", "timing"]
+  },
+  {
+    "id": "c003",
+    "series": "gamma",
+    "difficulty": "hard",
+    "visibleHint": "Koordynacja ról i delikatnych gestów.",
+    "privateInstruction": "Zachowaj ostrożność, trzymaj się metafor i sugestii.",
+    "duration": 120,
+    "specialType": "combo",
+    "tags": ["roles", "coordination"]
+  },
+  {
+    "id": "c004",
+    "series": "alpha",
+    "difficulty": "medium",
+    "visibleHint": "Historia opowiedziana spojrzeniami.",
+    "privateInstruction": "Zadbaj o tempo i komfort partnerów.",
+    "duration": 75,
+    "specialType": null,
+    "tags": ["story", "pace"]
+  },
+  {
+    "id": "c005",
+    "series": "beta",
+    "difficulty": "easy",
+    "visibleHint": "Zadanie na zaufanie i poczucie humoru.",
+    "privateInstruction": "Lekkość i bezpieczeństwo ponad wszystko.",
+    "duration": 60,
+    "specialType": null,
+    "tags": ["trust", "fun"]
+  },
+  { "id": "c006", "series": "alpha", "difficulty": "easy", "visibleHint": "—", "privateInstruction": "—", "duration": 60, "specialType": null, "tags": [] },
+  { "id": "c007", "series": "beta", "difficulty": "medium", "visibleHint": "—", "privateInstruction": "—", "duration": 60, "specialType": null, "tags": [] },
+  { "id": "c008", "series": "gamma", "difficulty": "hard", "visibleHint": "—", "privateInstruction": "—", "duration": 60, "specialType": null, "tags": [] },
+  { "id": "c009", "series": "alpha", "difficulty": "easy", "visibleHint": "—", "privateInstruction": "—", "duration": 60, "specialType": null, "tags": [] },
+  { "id": "c010", "series": "beta", "difficulty": "medium", "visibleHint": "—", "privateInstruction": "—", "duration": 60, "specialType": null, "tags": [] }
+]
+
+

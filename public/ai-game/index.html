@@ -1,0 +1,145 @@
+<!doctype html>
+<!--
+README (Definition of Done + Manual Tests)
+
+DoD:
+- Dark UI bez audio; brak treści dosłownych; modularny kod (HTML/CSS + mały JS)
+- Ankieta: suwak nastroju + toggle komfortu; zapis do localStorage.moodSurvey
+- Supervisor Prompt: modal z textarea; zapis do localStorage.supervisorPrompt
+- Stół gry: rewers karty, teaser (visibleHint), modal z prywatną instrukcją
+- Przyciski 👍/👎 zapisują rating do localStorage.cardLikes / .cardDislikes
+- Loader kart: fetch ./cards.json, losowanie drawCard(filter) po difficulty/series
+
+Testy ręczne (skrót):
+1) Otwórz stronę → zobacz ciemny interfejs, suwak, toggle, przycisk Supervisor Prompt
+2) Ustaw suwak i toggle → Odśwież stronę → wartości wczytane (localStorage.moodSurvey)
+3) Otwórz Supervisor Prompt, wpisz treść → Zapisz → Odśwież → treść wczytana (localStorage.supervisorPrompt)
+4) Kliknij „Dobierz kartę” (bez filtra) → pojawia się karta z „visibleHint” + przycisk „Prywatna instrukcja” (modal)
+5) Oceń kartę 👍/👎 → lokalny licznik rośnie, a ID trafia do localStorage.cardLikes/cardDislikes
+6) Filtr: ustaw „Seria” i „Poziom trudności” → „Dobierz kartę” losuje z dopasowaniem
+7) Brak błędów w konsoli; UI responsywny (min-width ~360px)
+-->
+<html lang="pl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Rozbieranie w Ciemno — AI Edition (Prototype)</title>
+    <link rel="stylesheet" href="./styles.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  </head>
+  <body>
+    <header class="app-header">
+      <div class="container row between center">
+        <h1 class="app-title">Rozbieranie w Ciemno — <span class="accent">AI Edition</span></h1>
+        <button id="btnSupervisor" class="btn btn-outline">Supervisor Prompt</button>
+      </div>
+    </header>
+
+    <main class="container app-main">
+      <!-- Ankieta -->
+      <section class="card-section">
+        <h2 class="section-title">Ankieta wstępna</h2>
+        <div class="survey-grid">
+          <div class="survey-item">
+            <label class="label" for="moodRange">Nastrój: <span id="moodValue">5</span>/10</label>
+            <input type="range" id="moodRange" min="1" max="10" step="1" value="5" />
+          </div>
+          <div class="survey-item">
+            <label class="label" for="comfortToggle">Komfort eksploracji</label>
+            <label class="toggle">
+              <input type="checkbox" id="comfortToggle" />
+              <span class="toggle-slider"></span>
+            </label>
+          </div>
+          <div class="survey-actions">
+            <button id="saveSurvey" class="btn">Zapisz ankietę</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Stół gry -->
+      <section class="card-section">
+        <h2 class="section-title">Stół gry</h2>
+        <div class="filters row wrap gap">
+          <div class="field">
+            <label class="label" for="seriesSelect">Seria</label>
+            <select id="seriesSelect">
+              <option value="">Dowolna</option>
+              <option value="alpha">Alpha</option>
+              <option value="beta">Beta</option>
+              <option value="gamma">Gamma</option>
+            </select>
+          </div>
+          <div class="field">
+            <label class="label" for="difficultySelect">Poziom trudności</label>
+            <select id="difficultySelect">
+              <option value="">Dowolny</option>
+              <option value="easy">Easy</option>
+              <option value="medium">Medium</option>
+              <option value="hard">Hard</option>
+            </select>
+          </div>
+          <button id="drawBtn" class="btn">Dobierz kartę</button>
+        </div>
+
+        <div class="table">
+          <div class="card-back" aria-label="Rewers karty"></div>
+          <div class="card-teaser">
+            <div class="muted">Teaser:</div>
+            <div id="visibleHint" class="teaser-text">—</div>
+          </div>
+          <div class="table-actions row gap">
+            <button id="btnPrivate" class="btn btn-outline">Prywatna instrukcja</button>
+            <button id="likeBtn" class="btn like">👍 <span id="likeCount">0</span></button>
+            <button id="dislikeBtn" class="btn dislike">👎 <span id="dislikeCount">0</span></button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Modal: Supervisor Prompt -->
+    <dialog id="supervisorModal" class="modal">
+      <form method="dialog" class="modal-content" id="supervisorForm">
+        <div class="modal-header row between center">
+          <h3>Supervisor Prompt</h3>
+          <button type="button" class="icon-btn" data-close>✕</button>
+        </div>
+        <div class="modal-body">
+          <label class="label" for="supervisorText">Instrukcja dla AI (bez treści dosłownych):</label>
+          <textarea id="supervisorText" rows="6" placeholder="Napisz bezpieczną instrukcję przewodnią…"></textarea>
+        </div>
+        <div class="modal-footer row end gap">
+          <button type="button" class="btn btn-outline" data-close>Anuluj</button>
+          <button type="submit" class="btn">Zapisz</button>
+        </div>
+      </form>
+    </dialog>
+
+    <!-- Modal: Prywatna instrukcja karty -->
+    <dialog id="privateModal" class="modal">
+      <form method="dialog" class="modal-content">
+        <div class="modal-header row between center">
+          <h3>Prywatna instrukcja</h3>
+          <button type="button" class="icon-btn" data-close>✕</button>
+        </div>
+        <div class="modal-body">
+          <div id="privateInstruction" class="private-text">—</div>
+          <div class="meta row gap muted" id="metaInfo"></div>
+        </div>
+        <div class="modal-footer row end gap">
+          <button type="button" class="btn" data-close>Zamknij</button>
+        </div>
+      </form>
+    </dialog>
+
+    <footer class="app-footer">
+      <div class="container muted">Prototype • Elegancki dark UI • Bez treści dosłownych</div>
+    </footer>
+
+    <script src="./app.js" type="module"></script>
+  </body>
+  </html>
+
+
