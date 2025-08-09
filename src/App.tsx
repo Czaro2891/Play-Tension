@@ -11,6 +11,7 @@ import Assessment from './pages/Assessment';
 import UserSetup from './pages/UserSetup';
 import TensionPage from './pages/TensionPage';
 import Telemetry from './pages/Telemetry';
+import Game from './pages/Game';
 
 // Używamy HashRouter, aby routing działał poprawnie na GitHub Pages bez dodatkowej konfiguracji serwera
 
@@ -30,6 +31,7 @@ function App() {
                 <Route path="/setup" element={<Navigate to="/user-setup" replace />} />
                 <Route path="/tension" element={<TensionPage />} />
                 <Route path="/telemetry" element={<Telemetry />} />
+                <Route path="/game" element={<Game />} />
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
             </TensionProvider>

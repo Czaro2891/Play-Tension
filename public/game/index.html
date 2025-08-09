@@ -1,0 +1,401 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Rozbieranie w Ciemno — Prototyp UI (HTML/CSS)</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* Paleta */
+  --bg:#0E0E10;--layer:#151518;--layer-2:#1C1C21;
+  --text:#EDEDED;--muted:#B7B7B7;
+  --gold:#D8C08E;--gold-2:#E5D6B1;
+  --ruby:#A44A54;
+  --rim:rgba(216,192,142,.18);
+  --shadow:0 8px 32px rgba(0,0,0,.35);
+  --radius:18px;--radius-lg:22px;
+  --speed:220ms;--easing:cubic-bezier(.22,1,.36,1);
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0;background:radial-gradient(1200px 800px at 80% -10%, #1a1a1f 0%, rgba(26,26,31,0) 60%) , var(--bg);
+  color:var(--text);font:400 16px/1.6 Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+  -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
+}
+h1,h2,h3{font-family:"Playfair Display", serif; letter-spacing:-.01em}
+h1{font-weight:700}
+.container{max-width:1120px;margin:0 auto;padding:24px}
+.grid{display:grid;gap:16px}
+.card{
+  background:linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,.00));
+  border:1px solid var(--rim); border-radius:var(--radius); box-shadow:var(--shadow);
+  backdrop-filter:blur(8px);
+}
+.btn{display:inline-flex;gap:.6rem;align-items:center;justify-content:center;
+  padding:.85rem 1.1rem;border-radius:12px;border:1px solid var(--rim);
+  color:var(--text);text-decoration:none;transition:all var(--speed) var(--easing);background:transparent}
+.btn:hover{background:rgba(255,255,255,.04)}
+.btn--gold{background:var(--gold);color:#0E0E10;border-color:transparent}
+.btn--gold:hover{background:var(--gold-2)}
+.badge{
+  display:inline-flex;align-items:center;gap:.4rem;font-weight:600;
+  border:1px solid var(--rim);padding:.2rem .6rem;border-radius:999px;color:var(--gold)
+}
+.badge .dot{width:.5rem;height:.5rem;border-radius:999px;background:var(--gold)}
+.kbd{padding:.1rem .45rem;border:1px solid var(--rim);border-bottom-color:rgba(0,0,0,.35);
+  border-radius:6px;background:rgba(255,255,255,.02);font-size:.9rem}
+
+/* NAV (anchor-based screens) */
+.screen{display:none;min-height:100dvh}
+.screen:target{display:block}
+
+/* INTRO */
+.hero{
+  display:grid;grid-template-columns:1.1fr .9fr;gap:28px;align-items:center
+}
+.hero .panel{padding:28px}
+.hero h1{font-size:42px;margin:0 0 10px}
+.hero p{color:var(--muted);margin:0 0 22px}
+
+/* SURVEY */
+.survey .q{
+  padding:18px;border-radius:14px;background:var(--layer);
+  border:1px solid var(--rim);display:grid;gap:10px
+}
+.range{appearance:none;width:100%;height:6px;border-radius:999px;background:#2a2a31;outline:none}
+.range::-webkit-slider-thumb{appearance:none;width:18px;height:18px;border-radius:50%;
+  background:var(--gold);border:2px solid #18181b;cursor:pointer;box-shadow:0 2px 6px rgba(0,0,0,.35)}
+.toggle{display:flex;gap:8px;align-items:center}
+.toggle input{appearance:none;width:42px;height:26px;border-radius:999px;background:#2a2a31;position:relative;outline:none;cursor:pointer;transition:all var(--speed) var(--easing)}
+.toggle input:checked{background:linear-gradient(90deg, #9a845e, var(--gold))}
+.toggle input::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:999px;background:#101014;transition:all var(--speed) var(--easing)}
+.toggle input:checked::after{left:19px}
+
+/* TABLE */
+.table{
+  display:grid;grid-template-columns:280px 1fr 280px;gap:18px
+}
+.bot{
+  padding:18px;display:grid;gap:14px
+}
+.bot h3{margin:0;font-size:18px;display:flex;align-items:center;gap:.6rem}
+.bot .avatar{width:38px;height:38px;border-radius:999px;background:#222228;border:1px solid var(--rim);display:grid;place-items:center;color:var(--gold)}
+.bot .bubble{
+  background:var(--layer-2);border:1px solid var(--rim);
+  border-radius:14px;padding:12px 14px;color:var(--muted)
+}
+.stack{display:grid;place-items:center;padding:16px}
+.stack .hint{
+  margin-bottom:10px;display:flex;justify-content:center;gap:10px;align-items:center;color:var(--muted)
+}
+.lvl{display:flex;gap:6px}
+.lvl .cap{width:10px;height:10px;border-radius:2px;background:#3a3a45}
+.lvl .cap.active{background:var(--gold)}
+.deck{
+  width:340px;height:520px;perspective:1200px
+}
+.card3d{
+  position:relative;width:100%;height:100%;transition:transform var(--speed) var(--easing);
+  transform-style:preserve-3d;cursor:pointer
+}
+.card3d .face{
+  position:absolute;inset:0;border-radius:var(--radius-lg);border:1px solid var(--rim);
+  background:linear-gradient(180deg, rgba(255,255,255,.03), rgba(255,255,255,.005));
+  box-shadow:var(--shadow);display:grid;place-items:center;padding:22px;backface-visibility:hidden
+}
+.card3d .back{transform:rotateY(180deg)}
+/* Flip via checkbox (no JS) */
+#flip:checked ~ .deck .card3d{transform:rotateY(180deg)}
+.deck .meta{display:grid;gap:16px;place-items:center}
+.deck .token{
+  display:inline-flex;align-items:center;gap:.6rem;border:1px solid var(--rim);padding:.55rem .9rem;border-radius:999px
+}
+.deck .series{font-family:"Playfair Display",serif;font-size:22px;letter-spacing:.01em}
+.deck .seal{
+  width:86px;height:86px;border-radius:999px;border:1px solid var(--rim);display:grid;place-items:center;
+  background:conic-gradient(from 120deg, rgba(216,192,142,.12), rgba(216,192,142,.04));
+  color:var(--gold)
+}
+/* PRIVATE & TEASER panels (modals via :target) */
+.modal{
+  position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;place-items:center;padding:24px;z-index:60
+}
+.modal:target{display:grid}
+.modal .sheet{
+  width:min(680px,92vw);background:var(--layer-2);border:1px solid var(--rim);border-radius:20px;
+  box-shadow:var(--shadow);padding:22px 22px 18px;display:grid;gap:14px
+}
+.sheet h3{margin:0 0 4px}
+.sheet p{margin:0;color:var(--muted)}
+.sheet .mask-row{display:flex;align-items:center;gap:10px;color:var(--gold)}
+.sheet .actions{display:flex;gap:10px;justify-content:flex-end;margin-top:8px}
+
+/* FOOT CONTROLS */
+.controls{
+  display:flex;gap:10px;justify-content:center;align-items:center;margin-top:14px
+}
+.sep{width:1px;height:22px;background:var(--rim)}
+.rate .btn{min-width:44px}
+
+/* ACCESSIBILITY */
+a:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(--gold);outline-offset:3px;border-radius:10px}
+
+/* RESPONSIVE */
+@media (max-width: 980px){
+  .hero{grid-template-columns:1fr}
+  .table{grid-template-columns:1fr}
+  .deck{width:88vw;height:62vh}
+}
+
+/* PREFERS REDUCED MOTION */
+@media (prefers-reduced-motion:reduce){
+  .card3d{transition:none}
+  .btn{transition:none}
+}
+</style>
+</head>
+<body>
+
+<!-- TOP NAV (anchors for screens) -->
+<nav class="container" style="display:flex;justify-content:space-between;align-items:center;gap:16px">
+  <div style="display:flex;align-items:center;gap:10px">
+    <div style="width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,#8a6,#9a7);display:grid;place-items:center;opacity:.18"></div>
+    <strong style="font-family:'Playfair Display',serif;letter-spacing:.01em">Rozbieranie w Ciemno</strong>
+    <span class="badge" style="margin-left:10px"><span class="dot"></span> prototyp</span>
+  </div>
+  <div style="display:flex;gap:8px">
+    <a class="btn" href="#intro">Intro</a>
+    <a class="btn" href="#survey">Ankieta</a>
+    <a class="btn btn--gold" href="#table">Stół gry</a>
+    <a class="btn" href="#supervisor">Supervisor Prompt</a>
+  </div>
+  
+</nav>
+
+<!-- INTRO -->
+<section id="intro" class="screen">
+  <div class="container hero">
+    <div class="card panel">
+      <h1>Witajcie w module <br/>„Rozbieranie w Ciemno — AI Edition”</h1>
+      <p>Wasze boty są gotowe, Supervisor obserwuje. Styl rozmowy i tempo dostosujemy do Waszych nastrojów. Zaczniemy subtelnie — elegancko, bez pośpiechu.</p>
+      <div style="display:flex;gap:10px;margin-top:8px">
+        <a class="btn btn--gold" href="#survey">Przejdź do ankiety</a>
+        <a class="btn" href="#table">Pomiń i przejdź do stołu</a>
+      </div>
+    </div>
+    <div class="grid">
+      <div class="card" style="padding:18px">
+        <h3 style="margin:0 0 6px;display:flex;gap:8px;align-items:center">
+          <span class="avatar">A</span> Bot A (ostrożny)
+        </h3>
+        <div class="bubble">„Hej, {Imię_A}. Zaczniemy miękko. Masz ochotę na odrobinę gry pozorów?”</div>
+      </div>
+      <div class="card" style="padding:18px">
+        <h3 style="margin:0 0 6px;display:flex;gap:8px;align-items:center">
+          <span class="avatar">B</span> Bot B (figlarny)
+        </h3>
+        <div class="bubble">„{Imię_B}, wyglądasz na gotowego. Obiecuję: elegancko, ale bez taryfy ulgowej.”</div>
+      </div>
+      <div class="card" style="padding:18px">
+        <div class="badge"><span class="dot"></span> Zasady komfortu</div>
+        <p style="margin:.7rem 0 0;color:var(--muted)">Zawsze możesz powiedzieć <span class="kbd">STOP</span>. Zamiana ról i obniżenie poziomu — w każdej chwili.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SURVEY -->
+<section id="survey" class="screen">
+  <div class="container survey">
+    <h2 style="margin:6px 0 16px">Krótka ankieta nastroju</h2>
+    <div class="grid" style="grid-template-columns:1fr 1fr">
+      <div class="q">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <strong>Dzisiejsza odwaga</strong><span class="badge"><span class="dot"></span> poziom</span>
+        </div>
+        <input class="range" type="range" min="1" max="10" value="4" />
+      </div>
+      <div class="q">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <strong>Dotyk w strefach intymnych</strong><span class="badge"><span class="dot"></span> zgoda</span>
+        </div>
+        <label class="toggle"><input type="checkbox" checked><span>Tak, w granicach komfortu</span></label>
+      </div>
+      <div class="q">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <strong>Humor vs powaga</strong><span class="badge"><span class="dot"></span> styl</span>
+        </div>
+        <input class="range" type="range" min="0" max="10" value="6" />
+      </div>
+      <div class="q">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <strong>Tempo eskalacji</strong><span class="badge"><span class="dot"></span> tempo</span>
+        </div>
+        <input class="range" type="range" min="1" max="5" value="2" />
+      </div>
+    </div>
+    <div style="margin-top:16px;display:flex;gap:10px">
+      <a class="btn" href="#intro">Wstecz</a>
+      <a class="btn btn--gold" href="#table">Przejdź do stołu gry</a>
+    </div>
+  </div>
+</section>
+
+<!-- TABLE (main play) -->
+<section id="table" class="screen">
+  <div class="container">
+    <h2 style="margin:6px 0 16px">Stół gry</h2>
+    <div class="table">
+      <!-- Bot A -->
+      <aside class="card bot">
+        <h3><span class="avatar">A</span> Bot A</h3>
+        <div class="bubble">„Tym razem tylko teaser dla {B}… Ktoś zaraz poczuje dreszcz.”</div>
+        <div class="bubble">„Widzę lekki uśmiech. Zapisuję to.”</div>
+      </aside>
+
+      <!-- Center Deck -->
+      <main class="card stack">
+        <div class="hint">
+          <span class="badge"><span class="dot"></span> Seria: Zasłonięte oczy</span>
+          <span class="badge"><span class="dot"></span> Poziom: III</span>
+        </div>
+
+        <!-- Difficulty bar -->
+        <div class="lvl" aria-label="Poziom trudności">
+          <span class="cap active"></span><span class="cap active"></span><span class="cap active"></span>
+          <span class="cap"></span><span class="cap"></span>
+        </div>
+
+        <!-- Flip control (no JS) -->
+        <input id="flip" type="checkbox" hidden aria-hidden="true" />
+        <label for="flip" class="deck" title="Kliknij aby podglądnąć tył (demo)">
+          <div class="card3d">
+            <!-- FRONT (rewers karty widoczny dla obu) -->
+            <div class="face front">
+              <div class="meta">
+                <div class="seal">III</div>
+                <div class="series">Rozbieranie w ciemno</div>
+                <div class="token"><span>Teaser:</span><em style="color:var(--muted)">„To będzie powolne odkrywanie.”</em></div>
+              </div>
+            </div>
+            <!-- BACK (treść – normalnie widoczna tylko prywatnie) -->
+            <div class="face back">
+              <div class="meta">
+                <div class="badge"><span class="dot"></span> Instrukcja — prywatna</div>
+                <p style="max-width:82%;text-align:center;color:var(--muted)">
+                  Załóż partnerowi opaskę. Rozepnij powoli jeden element garderoby, opisując szeptem, co w nim lubisz.
+                  Zatrzymaj dłonie tuż przy skórze — poczekaj 3 sekundy — kontynuuj.
+                </p>
+                <a class="btn btn--gold" href="#private">Pokaż instrukcję wykonawcy</a>
+              </div>
+            </div>
+          </div>
+        </label>
+
+        <!-- Controls -->
+        <div class="controls">
+          <a class="btn" href="#teaser">Teaser dla obserwującego</a>
+          <span class="sep"></span>
+          <a class="btn" href="#private">Instrukcja (prywatnie)</a>
+          <span class="sep"></span>
+          <div class="rate">
+            <a class="btn" href="#liked" title="👍 Lubię to">👍</a>
+            <a class="btn" href="#disliked" title="👎 Nie dla nas">👎</a>
+          </div>
+        </div>
+      </main>
+
+      <!-- Bot B -->
+      <aside class="card bot">
+        <h3><span class="avatar">B</span> Bot B</h3>
+        <div class="bubble">„{B}, patrzę tylko na rewers… i już wiem, że będzie dobrze.”</div>
+        <div class="bubble">„Gdyby było za ostro: zamiana ról albo poziom w dół. Elegancko.”</div>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<!-- MODALS -->
+<!-- Private instruction -->
+<section id="private" class="modal">
+  <div class="sheet">
+    <div class="mask-row"><span class="badge"><span class="dot"></span> Tryb: zasłonięte oczy</span></div>
+    <h3>Instrukcja wykonawcy (prywatna)</h3>
+    <p>Załóż partnerowi opaskę. Rozepnij powoli jeden element garderoby, opisując szeptem, co w nim lubisz. Zatrzymaj dłonie tuż przy skórze (3 sekundy), a potem kontynuuj. Jeśli wyczujesz niepewność — przerwij, zaproponuj zamianę ról lub obniżenie poziomu.</p>
+    <div class="actions">
+      <a class="btn" href="#table">Zamknij</a>
+      <a class="btn btn--gold" href="#table">Gotowe</a>
+    </div>
+  </div>
+</section>
+
+<!-- Teaser for observer -->
+<section id="teaser" class="modal">
+  <div class="sheet">
+    <div class="mask-row"><span class="badge"><span class="dot"></span> Tylko teaser</span></div>
+    <h3>Wskazówka dla obserwującego</h3>
+    <p><em>„To będzie powolne odkrywanie.”</em> — przygotuj się na elegancką niespodziankę. Oddychaj równo.</p>
+    <div class="actions">
+      <a class="btn btn--gold" href="#table">Rozumiem</a>
+    </div>
+  </div>
+</section>
+
+<!-- Rating feedback (demo) -->
+<section id="liked" class="modal">
+  <div class="sheet">
+    <h3>Zapisano</h3>
+    <p>Karta otrzymała ocenę „👍”. Zostaje w Waszej puli preferencji.</p>
+    <div class="actions">
+      <a class="btn btn--gold" href="#table">OK</a>
+    </div>
+  </div>
+</section>
+<section id="disliked" class="modal">
+  <div class="sheet">
+    <h3>Usunięto z puli</h3>
+    <p>Karta oznaczona „👎”. AI nie dobierze jej ponownie w tej sesji.</p>
+    <div class="actions">
+      <a class="btn btn--gold" href="#table">OK</a>
+    </div>
+  </div>
+</section>
+
+<!-- Supervisor Prompt modal -->
+<section id="supervisor" class="modal">
+  <div class="sheet">
+    <div class="mask-row"><span class="badge"><span class="dot"></span> Supervisor</span></div>
+    <h3>Prompt dla AI Supervisor</h3>
+    <p style="color:var(--muted)">To pole definiuje zachowanie nadzorcy (obserwacja, eskalacja, zamiana ról, reguły bezpieczeństwa). Zapisz, aby użyć przy kolejnej karcie.</p>
+    <form style="display:grid;gap:10px">
+      <label for="sv-prompt"><strong>Treść promptu</strong></label>
+      <textarea id="sv-prompt" rows="8" style="width:100%;border:1px solid var(--rim);border-radius:12px;background:var(--layer);color:var(--text);padding:12px"></textarea>
+      <div class="actions">
+        <a class="btn" href="#table">Anuluj</a>
+        <a class="btn btn--gold" href="#table" title="Zapisz (placeholder)">Zapisz</a>
+      </div>
+    </form>
+    <details style="margin-top:8px">
+      <summary class="btn" style="width:max-content">Szybkie presety</summary>
+      <div style="margin-top:8px;display:grid;gap:8px">
+        <code class="bubble">Observe-only; collect ratings; no intervention unless safety flag OR 2x 👍 in a row → +1 level.</code>
+        <code class="bubble">Humor: light; Escalation: slow; Swap roles if comfort mismatch; Always respect STOP.</code>
+        <code class="bubble">Boost „Zasłonięte oczy”; Prefer tasks with clothing removal; Downshift if any 👎.</code>
+      </div>
+    </details>
+  </div>
+  
+</section>
+
+<script>
+  // Ustaw intro jako domyślne, jeśli brak hash
+  if (!location.hash) location.hash = '#intro';
+</script>
+
+</body>
+</html>
+
+
