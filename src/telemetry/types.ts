@@ -1,7 +1,7 @@
-// Types for Live Telemetry System
+// Telemetry TypeScript definitions used by the in-app telemetry page
 
-export type AgentState = "idle" | "running" | "paused" | "error";
-export type JobPhase = "planning" | "generation" | "tool_call" | "critique" | "waiting";
+export type AgentState = 'idle' | 'running' | 'paused' | 'error';
+export type JobPhase = 'planning' | 'generation' | 'tool_call' | 'critique' | 'waiting';
 
 export interface TokenStats {
   input: number;
@@ -21,7 +21,7 @@ export interface PerformanceStats {
 }
 
 export interface ContextStats {
-  utilization: number; // 0..1
+  utilization: number;
   promptLength: number;
   compressionLevel: number;
   toolsInConversation: number;
@@ -56,7 +56,7 @@ export interface AgentStatus {
 
 export interface TelemetryEvent {
   ts: string;
-  type: "job_started" | "job_finished" | "tool_call" | "cache_hit" | "error" | "safety_block";
+  type: 'job_started' | 'job_finished' | 'tool_call' | 'cache_hit' | 'error' | 'safety_block';
   agentId: string;
   jobId?: string;
   payload?: Record<string, unknown>;
@@ -82,4 +82,5 @@ export interface SystemStatus {
   last_update: string;
   uptime_seconds: number;
 }
+
 
