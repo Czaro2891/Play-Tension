@@ -286,6 +286,15 @@ const Landing: React.FC = () => {
         </div>
       </section>
 
+      {/* AI Quick Test Section */}
+      <section className="py-16 bg-dark-900">
+        <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h3 className="text-2xl font-bold text-white mb-4">Szybki test AI</h3>
+          <p className="text-gray-400 mb-4">Napisz krótką wiadomość, a AI odpowie (mock, do testu działania UI).</p>
+          <AIQuickTest />
+        </div>
+      </section>
+
       {/* Footer */}
       <footer className="bg-dark-800 border-t border-dark-700 py-12">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -307,3 +316,59 @@ const Landing: React.FC = () => {
 };
 
 export default Landing;
+
+// Prosty komponent testowy z polem tekstowym i odpowiedzią AI (mock)
+const AIQuickTest: React.FC = React.memo(() => {
+  const [message, setMessage] = React.useState<string>('');
+  const [response, setResponse] = React.useState<string>('');
+  const [loading, setLoading] = React.useState<boolean>(false);
+
+  const handleSend = React.useCallback(async () => {
+    if (!message.trim()) return;
+    setLoading(true);
+    setResponse('');
+    // Symulacja odpowiedzi AI (mock)
+    await new Promise((r) => setTimeout(r, 600));
+    setResponse(
+      `AI: Rozumiem. Napisałeś: "${message.trim()}". ` +
+      'Wersja demo potwierdza działanie interfejsu.'
+    );
+    setLoading(false);
+  }, [message]);
+
+  const handleKeyDown = React.useCallback((e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+      e.preventDefault();
+      handleSend();
+    }
+  }, [handleSend]);
+
+  return (
+    <div className="bg-dark-800 border border-dark-700 rounded-2xl p-4">
+      <label className="block text-sm font-medium text-gray-300 mb-2">Twoja wiadomość</label>
+      <textarea
+        value={message}
+        onChange={(e) => setMessage(e.target.value)}
+        onKeyDown={handleKeyDown}
+        rows={3}
+        className="w-full resize-y bg-dark-900 border border-dark-700 rounded-xl text-gray-100 p-3 outline-none focus:border-gold-400"
+        placeholder="Napisz coś do AI... (Ctrl/Cmd + Enter aby wysłać)"
+      />
+      <div className="mt-3 flex items-center gap-3">
+        <button
+          onClick={handleSend}
+          disabled={loading || !message.trim()}
+          className="px-4 py-2 rounded-lg font-semibold text-dark-900 bg-gradient-to-r from-gold-400 to-rose-400 disabled:opacity-50"
+        >
+          {loading ? 'Wysyłanie…' : 'Wyślij'}
+        </button>
+        <span className="text-xs text-gray-500">Mock odpowiedzi – bez połączenia z serwerem</span>
+      </div>
+      {response && (
+        <div className="mt-4 bg-dark-900 border border-dark-700 rounded-xl p-3 text-gray-100 whitespace-pre-wrap">
+          {response}
+        </div>
+      )}
+    </div>
+  );
+});
