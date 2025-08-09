@@ -1,0 +1,234 @@
+Propozycja stworzenia zakładki „Live Telemetry” w celu monitorowania gry i agentów w czasie rzeczywistym. Zakładka ta powinna zawierać następujące elementy:  1. Agenci:     - Stan (aktywny lub wstrzymany)     - Bieżące zadanie     - Kolejka jobów     - Ostatni błąd  2. Tokeny:     - Użyte tokeny     - Prognoza do końca rundy     - „Zaoszczędzone” tokeny w porównaniu z linią bazową  3. Wydajność:     - Latencja (p50/p95)     - Koszt na 1000 tokenów     - Współczynnik trafień w cache     - Współczynnik ponownych prób  4. Kontekst:     - Długość promptu     - Poziom kompresji     - Liczba narzędzi w konwersacji  5. Bezpieczeństwo/Etyka:     - Flagi treści     - Ostatnie odrzucenia     - Decyzje guardrails  6. Zdarzenia:     - Strumień live (start/stop jobu, tool-call, cache hit, błąd)  7. Sterowanie:     - Pauza/wznów agenta     - Zmiana „temperature”     - Limit tokenów     - Poziom logów  Metryki kluczowe: - tokens_used_total - tokens_input - tokens_output - tokens_saved = baseline_tokens - tokens_used_total - Baseline: pełna generacja bez cache/kompresji, ustalona per-scena - latency_ms_p50 - latency_ms_p95 - cache_hit_rate = cache_hits / (cache_hits + generations) - tool_calls - errors_5xx - retries - context_utilization = used_ctx / max_ctx  Zakładka powinna mieć elegancką oprawę UI, z wykorzystaniem lampek i wskazówek, aby ułatwić monitorowanie i kontrolowanie gry i agentów.
+
+
+ChatGPT powiedział:
+
+Myślał przez 9s
+Poniżej gotowy szkic UI + API dla zakładki „Live Telemetry” zgodnej z Twoją specyfikacją. Minimalny kod, działający szkielet, lampki i wskaźniki.
+
+Struktura strony
+/telemetry: nagłówek z KPI i budżetem, siatka agentów, panel zdarzeń live, szuflada szczegółów.
+
+Dane: REST (/api/telemetry/agents) + SSE (/api/telemetry/stream).
+
+Lampki stanów: zielony=OK, żółty=uwaga, czerwony=problem, szary=idle.
+
+Typy i metryki (TS)
+ts
+Kopiuj
+Edytuj
+// /types/telemetry.ts
+export type AgentState = "idle"|"running"|"paused"|"error";
+export type JobPhase = "planning"|"generation"|"tool_call"|"critique"|"waiting";
+
+export interface TokenStats {
+  input: number; output: number; total: number;
+  saved_vs_baseline: number; cost_usd: number;
+}
+export interface AgentStatus {
+  id: string; name: string; role: string;
+  state: AgentState;
+  currentJob?: { id: string; sceneId: string; phase: JobPhase; startedAt: string; };
+  queue: number;
+  tokens: TokenStats;
+  latencyMsP50: number; latencyMsP95: number;
+  cacheHitRate: number; retries: number; errors5xx: number;
+  toolCalls: number;
+  contextUtilization: number; // 0..1
+  safety: { flagged: boolean; lastLabel?: string; blocks: number; rejections: number; };
+  promptLength: number; compressionLevel: number; toolsInConversation: number;
+}
+export interface TelemetryEvent {
+  ts: string;
+  type: "job_started"|"job_finished"|"tool_call"|"cache_hit"|"error"|"safety_block";
+  agentId: string; jobId?: string; payload?: Record<string, unknown>;
+}
+API (Next.js app router)
+ts
+Kopiuj
+Edytuj
+// /app/api/telemetry/agents/route.ts
+import { NextResponse } from "next/server";
+import { AgentStatus } from "@/types/telemetry";
+
+export async function GET() {
+  const mock: AgentStatus[] = [
+    {
+      id:"a1", name:"PlayerAgent#1", role:"planner", state:"running",
+      currentJob:{ id:"j101", sceneId:"s-01", phase:"tool_call", startedAt:new Date().toISOString() },
+      queue:2,
+      tokens:{ input:850, output:420, total:1270, saved_vs_baseline:360, cost_usd:0.0041 },
+      latencyMsP50:420, latencyMsP95:900,
+      cacheHitRate:0.37, retries:1, errors5xx:0, toolCalls:3,
+      contextUtilization:0.62,
+      safety:{ flagged:false, blocks:0, rejections:0 },
+      promptLength:1400, compressionLevel:2, toolsInConversation:2
+    }
+  ];
+  return NextResponse.json(mock);
+}
+ts
+Kopiuj
+Edytuj
+// /app/api/telemetry/stream/route.ts
+export async function GET() {
+  const encoder = new TextEncoder();
+  const stream = new ReadableStream({
+    start(controller) {
+      const send = (obj: unknown) => controller.enqueue(encoder.encode(`data: ${JSON.stringify(obj)}\n\n`));
+      send({ ts:new Date().toISOString(), type:"hello", agentId:"system" });
+
+      const iv = setInterval(()=>{
+        send({ ts:new Date().toISOString(), type:"cache_hit", agentId:"a1" });
+      }, 3000);
+
+      const close = () => { clearInterval(iv); controller.close(); };
+      // @ts-ignore
+      controller.signal?.addEventListener?.("abort", close);
+    }
+  });
+  return new Response(stream, {
+    headers: { "Content-Type":"text/event-stream", "Cache-Control":"no-cache, no-transform", "Connection":"keep-alive" }
+  });
+}
+Strona i komponenty (React + Tailwind)
+tsx
+Kopiuj
+Edytuj
+// /app/telemetry/page.tsx
+"use client";
+import { useEffect, useMemo, useState } from "react";
+import type { AgentStatus, TelemetryEvent } from "@/types/telemetry";
+
+const Lamp = ({state}:{state:"ok"|"warn"|"err"|"idle"}) => (
+  <span className={`inline-block h-2.5 w-2.5 rounded-full
+    ${state==="ok"&&"bg-green-500"} ${state==="warn"&&"bg-yellow-500"}
+    ${state==="err"&&"bg-red-500"} ${state==="idle"&&"bg-gray-400"}`} />
+);
+
+export default function TelemetryPage(){
+  const [agents,setAgents]=useState<AgentStatus[]>([]);
+  const [events,setEvents]=useState<TelemetryEvent[]>([]);
+
+  useEffect(()=>{
+    fetch("/api/telemetry/agents").then(r=>r.json()).then(setAgents);
+    const es = new EventSource("/api/telemetry/stream");
+    es.onmessage = (m)=> setEvents(e=>[JSON.parse(m.data), ...e].slice(0,200));
+    return ()=> es.close();
+  },[]);
+
+  const kpi = useMemo(()=>{
+    const t = agents.reduce((a,x)=>({
+      input:a.input+x.tokens.input, output:a.output+x.tokens.output, total:a.total+x.tokens.total,
+      saved:a.saved+x.tokens.saved_vs_baseline, cost:a.cost+x.tokens.cost_usd,
+      p50:[...a.p50,x.latencyMsP50], p95:[...a.p95,x.latencyMsP95],
+      cacheHits:[...a.cacheHits,x.cacheHitRate], retries:a.retries+x.retries
+    }),{input:0,output:0,total:0,saved:0,cost:0,p50:[] as number[],p95:[] as number[],cacheHits:[] as number[],retries:0});
+    const avg = (arr:number[])=> arr.length? Math.round(arr.reduce((s,v)=>s+v,0)/arr.length):0;
+    const cache = t.cacheHits.length? Math.round(100* t.cacheHits.reduce((s,v)=>s+v,0)/t.cacheHits.length):0;
+    return { tokens_total:t.total, tokens_input:t.input, tokens_output:t.output, tokens_saved:t.saved, cost_usd:t.cost, p50:avg(t.p50), p95:avg(t.p95), cache_hit_rate:cache, retries:t.retries };
+  },[agents]);
+
+  return (
+    <div className="p-4 space-y-4">
+      {/* KPI */}
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <Kpi label="Tokens total" value={kpi.tokens_total}/>
+        <Kpi label="Saved vs baseline" value={kpi.tokens_saved}/>
+        <Kpi label="p50 / p95 (ms)" value={`${kpi.p50} / ${kpi.p95}`}/>
+        <Kpi label="Cache-hit / Retries" value={`${kpi.cache_hit_rate}% / ${kpi.retries}`}/>
+      </div>
+
+      {/* Agenci */}
+      <section className="space-y-2">
+        <h2 className="text-lg font-semibold">Agenci</h2>
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          {agents.map(a=>(
+            <div key={a.id} className="rounded-2xl border p-3 shadow-sm bg-white">
+              <div className="flex items-center justify-between">
+                <div className="font-medium">{a.name}</div>
+                <Lamp state={a.state==="running"?"ok":a.state==="paused"?"idle":a.state==="error"?"err":"warn"} />
+              </div>
+              <div className="text-sm text-gray-600 mt-1">
+                Faza: <b>{a.currentJob?.phase ?? "—"}</b> · Kolejka: <b>{a.queue}</b>
+              </div>
+              <div className="mt-2 grid grid-cols-2 text-sm">
+                <div>Tokens: <b>{a.tokens.total}</b></div>
+                <div>Saved: <b>{a.tokens.saved_vs_baseline}</b></div>
+                <div>p50/p95: <b>{a.latencyMsP50}/{a.latencyMsP95}</b></div>
+                <div>Cache: <b>{Math.round(a.cacheHitRate*100)}%</b></div>
+                <div>Ctx: <b>{Math.round(a.contextUtilization*100)}%</b></div>
+                <div>Retries: <b>{a.retries}</b></div>
+              </div>
+              <div className="mt-2 text-xs text-gray-500">
+                Prompt: {a.promptLength} • Kompresja: {a.compressionLevel} • Narzędzia: {a.toolsInConversation}
+              </div>
+              {a.safety.flagged && (
+                <div className="mt-2 text-xs text-red-600">SAFETY: {a.safety.lastLabel} · Blocks {a.safety.blocks} · Reject {a.safety.rejections}</div>
+              )}
+              <div className="mt-3 flex gap-2">
+                <Btn onClick={()=>post(`/api/agents/${a.id}/pause`)}>Pauza</Btn>
+                <Btn onClick={()=>post(`/api/agents/${a.id}/resume`)} variant="ghost">Wznów</Btn>
+                <Btn onClick={()=>post(`/api/agents/${a.id}/preset?mode=eco`)} variant="soft">Tryb oszczędny</Btn>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Zdarzenia */}
+      <section className="space-y-2">
+        <h2 className="text-lg font-semibold">Zdarzenia</h2>
+        <div className="rounded-2xl border bg-white p-3 max-h-[420px] overflow-auto">
+          <ul className="space-y-1 text-sm">
+            {events.map((e,i)=>(
+              <li key={i} className="flex items-center gap-2">
+                <Lamp state={e.type==="error"||e.type==="safety_block"?"err":e.type==="cache_hit"?"ok":"warn"} />
+                <span className="tabular-nums text-gray-500">{new Date(e.ts).toLocaleTimeString()}</span>
+                <span className="text-gray-800">{e.type}</span>
+                <span className="text-gray-500">· {e.agentId}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+function Kpi({label, value}:{label:string; value:React.ReactNode}){
+  return (
+    <div className="rounded-2xl border p-3 shadow-sm bg-white">
+      <div className="text-xs uppercase text-gray-500">{label}</div>
+      <div className="text-2xl font-semibold mt-1 tabular-nums">{value}</div>
+    </div>
+  );
+}
+function Btn({children,onClick,variant}:{children:React.ReactNode; onClick:()=>void; variant?:"ghost"|"soft"}) {
+  const base = "px-3 py-1.5 rounded-xl text-sm border";
+  const cls = variant==="ghost" ? `${base} bg-white hover:bg-gray-50` :
+             variant==="soft"  ? `${base} bg-gray-100 hover:bg-gray-200` :
+                                 `${base} bg-black text-white hover:bg-gray-900 border-black`;
+  return <button onClick={onClick} className={cls}>{children}</button>;
+}
+async function post(url:string){ await fetch(url, { method:"POST" }); }
+Logika „tokens_saved”
+Konfiguruj baseline per scena: baselineTokens[sceneId].
+
+saved_vs_baseline = max(0, baselineTokens[sceneId] - (input+output)).
+
+Źródła oszczędności raportuj osobno: cache, kompresja, skrócenie kontekstu, tool-call.
+
+Ryzyka i uwagi
+SSE bywa zrywane przez proxy. Ustaw Connection: keep-alive i wyłącz gzip dla strumienia.
+
+Agregacje KPI licz delikatnie. Outliery zbijaj medianą lub winsoryzacją.
+
+Ustal limity PII w zdarzeniach. Payloady do audytu anonimizuj.
+
+Podsumowanie
+Jedna strona, KPI u góry, siatka agentów z lampkami, strumień zdarzeń.
+
+API: /api/telemetry/agents (REST) i /api/telemetry/stream (SSE).
+
+Metryki i sterowanie zgodnie z Twoją listą, gotowe do rozbudowy o playbooki i budżet.
